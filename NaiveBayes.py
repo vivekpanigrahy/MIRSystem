@@ -8,14 +8,12 @@ def fullData(gnb, lines,lines2 ):
     data = lines.values
     labels = lines2.values.ravel()
     y_pred = gnb.fit(data, labels).predict(data)
-    #print("Full Data mislabeled points out of %d points : %d"% (data.shape[0],(labels != y_pred).sum()))
     print("Full Data from train and test Error Rate : %d" % (((labels != y_pred).sum())*100/data.shape[0]))
 
 
 def dataByFrac(gnb, lines, testFraction):
     trainData, testData = helpers.dataFractions.getFraction(lines, testFraction)
     y_pred = gnb.fit(trainData.iloc[:,:-1], trainData.iloc[:,-1]).predict(testData.iloc[:,:-1])
-    #print("Data Fraction mislabeled points out of %d points : %d"% (testData.shape[0],(testData.iloc[:,-1]!= y_pred).sum()))
     print("Test data as Fraction from train Error Rate : %d" % (((testData.iloc[:,-1] != y_pred).sum())*100/testData.shape[0]))
 
 def kFoldData(gnb, lines, nSplits):
