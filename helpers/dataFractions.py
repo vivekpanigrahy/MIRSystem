@@ -1,8 +1,8 @@
-# 80/10/10% split into training, validation and test sets
-# fractionTrain, fractionTest, fractionVal
+from sklearn.model_selection import train_test_split
 
-import numpy as np
-def getFraction(dataSet,labelsData):
-    trainData, validateData, testData = np.split(dataSet.sample(frac=1), [int(.8 * len(dataSet)), int(.9 * len(dataSet))])
-    trainLabels, validateLabels, testLabels = np.split(labelsData.sample(frac=1), [int(.8 * len(labelsData)), int(.9 * len(labelsData))])
-    return trainData.values, validateData.values, testData.values, trainLabels.values.ravel(), validateLabels.values.ravel(), testLabels.values.ravel()
+def getFraction(dataSet, testFraction):
+    train, test = train_test_split(dataSet, test_size=testFraction)
+    # 80/10/10% split into training, validation and test sets
+    #trainData, validateData, testData = np.split(dataSet.sample(frac=1), [int(.8 * len(dataSet)), int(.9 * len(dataSet))])
+    return train, test
+
