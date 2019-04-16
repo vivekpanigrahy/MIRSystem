@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import KFold
 from sklearn.metrics import classification_report
 from sklearn.decomposition import PCA
+import sklearn.svm
 import time
 from sklearn.linear_model import LogisticRegression
 import multiprocessing
@@ -13,56 +14,74 @@ import multiprocessing
 from imblearn.over_sampling import SMOTE
 from collections import Counter
 
-# 40432 samples
-
 target_names = None
+
+
+use_PCA = False
+use_SMOTE = True
+smote_threshold = 1000
 
 
 def preprocessing():
     global target_names
 
-    data = helpers.FileReader.loadCsv('data/dataSet.csv')
-    labels = helpers.FileReader.loadCsv('data/labels.csv')
+    # data = helpers.FileReader.loadCsv('data/dataSet.csv')
+    # labels = helpers.FileReader.loadCsv('data/labels.csv')
+
+    data = helpers.FileReader.loadCsv('data/dataSetMedium.csv')
+    labels = helpers.FileReader.loadCsv('data/labelsMedium.csv')
+
     labels.rename(columns={0: 'label'}, inplace=True)
     target_names = list(labels.label.value_counts().index)
-    #print("Unique labels: ", target_names)
+    print("Unique labels: ", target_names)
     print(labels.label.value_counts())
 
-    X = data.values  # [0:1000, :]
-    Y = labels.values.ravel()  # [0:1000]
+    # If you want to use trackIDs, don't splice out below
+    X = data.values
+    X = X[4:, 1:] # remove columns and track IDs
+    Y = labels.values[:, 1].ravel() # remove track IDs
+
+
+    print("Number of unique classes: ", len(np.unique(Y)))
+    print("Shape of data: ", X.shape)
 
     # --- Dim. Reduction ---
-    # print("Num initial features: ", X.shape[1])
-    # pca = PCA(n_components=0.975, svd_solver='full')
-    # pca.fit(X)
-    # print(pca.explained_variance_ratio_)
-    # X = pca.transform(X)
-    # print("Num latent features: ", X.shape[1])
+    if use_PCA:
+        print("Using PCA...\nNum initial features: ", X.shape[1])
+        pca = PCA(n_components=0.975, svd_solver='full')
+        pca.fit(X)
+        print(pca.explained_variance_ratio_)
+        X = pca.transform(X)
+        print("Num latent features: ", X.shape[1])
 
     # --- SMOTE ---
-    # Create dict, where for each class we specify # of samples we desire
-    smote_targets = {k: v for k, v in zip(target_names, labels.label.value_counts().values)}
-    # Make each class have at least 5000 samples
-    for k, v in smote_targets.items():
-        if v < 5000:
-            smote_targets[k] = 5000
-    # print("smote targets: ", smote_targets)
+    X_res = X
+    Y_res = Y
 
-    print('Original dataset shape %s' % Counter(Y))
-    sm = SMOTE(sampling_strategy=smote_targets, random_state=42, n_jobs=multiprocessing.cpu_count() - 1)
-    X_res, Y_res = sm.fit_resample(X, Y)
-    print('Resampled dataset shape %s' % Counter(Y_res))
+    if use_SMOTE:
+        # Create dict, where for each class we specify # of samples we desire
+        smote_targets = {k: v for k, v in zip(target_names, labels.label.value_counts().values)}
+        # Make each class have at least smote_threshold samples
+        for k, v in smote_targets.items():
+            if v < smote_threshold:
+                smote_targets[k] = smote_threshold
+        # print("smote targets: ", smote_targets)
+
+        print('Original dataset shape %s' % Counter(Y))
+        sm = SMOTE(sampling_strategy=smote_targets, k_neighbors=20, random_state=42, n_jobs=multiprocessing.cpu_count() - 1)
+        X_res, Y_res = sm.fit_resample(X, Y)
+        print('Resampled dataset shape %s' % Counter(Y_res))
 
     return X_res, Y_res
 
 
 def main(X, Y):
 
-    model = AdaBoostClassifier(DecisionTreeClassifier(max_depth=2),
-                               n_estimators=50,
-                               learning_rate=1)
+    # model = AdaBoostClassifier(DecisionTreeClassifier(max_depth=2),
+    #                            n_estimators=50,
+    #                            learning_rate=1)
 
-    # model = LogisticRegression(n_jobs=8)
+    model = sklearn.svm.SVC()# LogisticRegression(n_jobs=8)
 
 
     kf = KFold(n_splits=10, shuffle=True)
