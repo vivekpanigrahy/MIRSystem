@@ -1,0 +1,27 @@
+------ Fold report ------ 
+	# training: 37682
+ 	# test: 4187
+ 	Acc: 0.4490088368760449 
+                      precision    recall  f1-score   support
+
+               Rock       0.65      0.57      0.61       695
+         Electronic       0.67      0.20      0.31       630
+       Experimental       0.34      0.16      0.22       215
+            Hip-Hop       0.26      0.45      0.33       230
+               Folk       0.45      0.51      0.48       214
+       Instrumental       0.32      0.17      0.22       185
+                Pop       0.15      0.06      0.09       211
+      International       0.24      0.17      0.20       200
+          Classical       0.57      0.86      0.69       212
+Old-Time / Historic       0.95      0.92      0.93       184
+               Jazz       0.34      0.32      0.33       195
+            Country       0.31      0.72      0.43       201
+           Soul-RnB       0.21      0.60      0.31       187
+             Spoken       0.61      0.77      0.68       194
+              Blues       0.41      0.55      0.47       208
+     Easy Listening       0.91      0.43      0.59       226
+
+          micro avg       0.45      0.45      0.45      4187
+          macro avg       0.46      0.47      0.43      4187
+       weighted avg       0.51      0.45      0.44      4187
+
