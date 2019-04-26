@@ -8,6 +8,7 @@ from sklearn.metrics import classification_report
 from sklearn.decomposition import PCA
 import time
 import multiprocessing
+import pickle
 
 from imblearn.over_sampling import SMOTE
 from collections import Counter
@@ -17,10 +18,8 @@ target_names = None
 
 use_PCA = False
 use_SMOTE = True
-smote_threshold = 1000
+smote_threshold = 3000
 output_folder = 'adaboost_outputs'
-resultsFile = output_folder + '/results'
-graphFile = output_folder + '/graphs'
 
 
 def preprocessing():
@@ -78,7 +77,8 @@ def preprocessing():
 def main(X, Y):
 
     kf = KFold(n_splits=10, shuffle=True)
-    num_estimators = [10, 25, 50, 75, 100, 125, 150, 200]
+    num_estimators = [600] # 25, 50, 75, 100, 125, 150]
+    acc_scores = []
     count = 0
 
 
@@ -86,19 +86,26 @@ def main(X, Y):
         curr_num = num_estimators[count]
         print("Starting Fold... num_estimators=", curr_num)
         model = AdaBoostClassifier(DecisionTreeClassifier(max_depth=2),
-                                   n_estimators=50,
+                                   n_estimators=curr_num,
                                    learning_rate=1)
 
         X_train, X_test = X[train_idx], X[test_idx]
         Y_train, Y_test = Y[train_idx], Y[test_idx]
         pred = model.fit(X_train, Y_train).predict(X_test)
+        print("Classification error per estimator: ", model.estimator_errors_)
         acc = accuracy_score(y_true=Y_test, y_pred=pred)
-        print("------ Fold report ------")
-        print("\t# training: ", X_train.shape[0])
-        print("\t# test: ", X_test.shape[0])
+        acc_scores.append(acc)
+        # print("------ Fold report ------")
+        # print("\t# training: ", X_train.shape[0])
+        # print("\t# test: ", X_test.shape[0])
         print("\tAcc: ", acc)
-        print(classification_report(Y_test, pred, target_names), "\n\n")
-        exit(0)
+        # print(classification_report(Y_test, pred, target_names), "\n\n")
+        count += 1
+        if count == len(num_estimators):
+            with open(output_folder + '/accuraciesTest_' + str(smote_threshold) + '.pickle', 'wb') as handle:
+                pickle.dump(acc_scores, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            exit(0)
+
 
 
 if __name__ == '__main__':
